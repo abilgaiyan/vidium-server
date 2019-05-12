@@ -1,3 +1,7 @@
+const AWS = require('aws-sdk');
+const uuid = require('uuid/v1');
+const keys =require('../config/keys');
+
 const fs = require('fs');
 const path = require('path');
 
@@ -6,6 +10,25 @@ const { validationResult } = require('express-validator/check');
 const UploadVideo = require('../models/uploadVideo');
 const User = require('../models/user');
 
+const s3 = new AWS.S3({
+  accessKeyId: keys.s3_vidium_access_key,
+  secretAccessKey: keys.s3_vidium_secretAccess_key
+}
+)
+
+exports.awsVideoUpload = async (req,res,next) =>{
+  const videoextn = req.params.videotype || 'mp4'
+  //const key =`${req.userId}/${uuid()}.mp4`;
+  const key =`${req.userId}/${uuid()}.${videoextn}`;
+  //get presigned url from amazon
+  s3.getSignedUrl('putObject',{
+    Bucket: keys.s3_vidium_bucket_name,
+    ContentType: 'video/*',
+    Key: key
+  }, (err, url) =>{
+     return res.send({key, url})
+  })
+}
 exports.getUploadVideos = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
@@ -35,12 +58,13 @@ exports.createUploadVideo = async (req, res, next) => {
     error.statusCode = 422;
     throw error;
   }
-  if (!req.file) {
-    const error = new Error('No image provided.');
-    error.statusCode = 422;
-    throw error;
-  }
-  const videoUrl = req.file.path;
+  // if (!req.file) {
+  //   const error = new Error('No image provided.');
+  //   error.statusCode = 422;
+  //   throw error;
+  // }
+  //const videoUrl = req.file.path;
+  const videoUrl = req.body.videoUrl;
   const title = req.body.title;
   const content = req.body.content;
   const UploadVideo = new UploadVideo({
@@ -68,7 +92,7 @@ exports.createUploadVideo = async (req, res, next) => {
 };
 
 exports.getUploadVideo = async (req, res, next) => {
-  const UploadVideoId = req.params.UploadVideoId;
+  const UploadVideoId = req.params.videoId;
   const UploadVideo = await UploadVideo.findById(UploadVideoId);
   try {
     if (!UploadVideo) {
@@ -86,7 +110,7 @@ exports.getUploadVideo = async (req, res, next) => {
 };
 
 exports.updateUploadVideo = async (req, res, next) => {
-  const UploadVideoId = req.params.UploadVideoId;
+  const UploadVideoId = req.params.videoId;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect.');
@@ -95,10 +119,12 @@ exports.updateUploadVideo = async (req, res, next) => {
   }
   const title = req.body.title;
   const content = req.body.content;
-  let videoUrl = req.body.video;
-  if (req.file) {
-    videoUrl = req.file.path;
-  }
+  //let videoUrl = req.body.video;
+
+  let videoUrl = req.body.videoUrl;
+  // if (req.file) {
+  //   videoUrl = req.file.path;
+  // }
   if (!videoUrl) {
     const error = new Error('No file picked.');
     error.statusCode = 422;
@@ -133,7 +159,7 @@ exports.updateUploadVideo = async (req, res, next) => {
 };
 
 exports.deleteUploadVideo = async (req, res, next) => {
-  const UploadVideoId = req.params.UploadVideoId;
+  const UploadVideoId = req.params.videoId;
   try {
     const UploadVideo = await UploadVideo.findById(UploadVideoId);
 

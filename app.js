@@ -7,12 +7,12 @@ const multer = require('multer');
 
 const uploadVideoRoutes = require('./routes/uploadVideo');
 const authRoutes = require('./routes/auth');
-
+const awsUploadRoutes = require('./routes/uploadRoutes');
 const app = express();
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'videos');
+    cb(null, 'images');
   },
   filename: (req, file, cb) => {
     cb(null, new Date().getUTCSeconds + '-' + file.originalname);
@@ -21,11 +21,9 @@ const fileStorage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   if (
-    file.mimetype === 'video/mp4' ||
-    file.mimetype === 'application/x-mpegURL' ||
-    file.mimetype === 'video/MP2T' ||
-    file.mimetype === 'video/3gpp' ||
-    file.mimetype === 'video/x-ms-wmv'
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
   ) {
     cb(null, true);
   } else {

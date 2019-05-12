@@ -6,6 +6,7 @@ const isAuth = require('../middleware/is-auth');
 
 const router = express.Router();
 
+router.get('/upload', isAuth, uploadVideoController.awsVideoUpload)
 // GET /upload/videos
 router.get('/videos', isAuth, uploadVideoController.getUploadVideos);
 
