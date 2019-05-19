@@ -7,7 +7,7 @@ const multer = require('multer');
 
 const uploadVideoRoutes = require('./routes/uploadVideo');
 const authRoutes = require('./routes/auth');
-const awsUploadRoutes = require('./routes/uploadRoutes');
+//const awsUploadRoutes = require('./routes/uploadVideoRoutes');
 const app = express();
 
 const fileStorage = multer.diskStorage({

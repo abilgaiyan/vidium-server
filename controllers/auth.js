@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+const keys = require('../config/keys');
 
 exports.signup = async (req, res, next) => {
   const errors = validationResult(req);
@@ -56,7 +57,7 @@ exports.login = async (req, res, next) => {
         email: loadedUser.email,
         userId: loadedUser._id.toString()
       },
-      'somesupersecretsecret',
+      keys.secretOrPrivateKey,
       { expiresIn: '1h' }
     );
     res.status(200).json({ token: token, userId: loadedUser._id.toString() });
