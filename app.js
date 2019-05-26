@@ -8,6 +8,7 @@ const multer = require('multer');
 const uploadVideoRoutes = require('./routes/uploadVideo');
 const authRoutes = require('./routes/auth');
 //const awsUploadRoutes = require('./routes/uploadVideoRoutes');
+const keys = require('./config/keys');
 const app = express();
 
 const fileStorage = multer.diskStorage({
@@ -62,7 +63,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://ajayb:eshop@node-nosql-p4wwm.mongodb.net/vidium?retryWrites=true'
+    keys.mongoURI
   )
   .then(result => {
     app.listen(8080);
