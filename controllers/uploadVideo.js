@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
 const uuid = require('uuid/v1');
-const keys =require('../config/keys');
+const keys = require('../config/keys');
 
 const fs = require('fs');
 const path = require('path');
@@ -10,23 +10,32 @@ const { validationResult } = require('express-validator/check');
 const UploadVideo = require('../models/uploadVideo');
 const User = require('../models/user');
 
+// const s3 = new AWS.S3({
+//   accessKeyId: keys.s3_vidium_access_key,
+//   secretAccessKey: keys.s3_vidium_secretAccess_key
+// }
+// )
 const s3 = new AWS.S3({
   accessKeyId: keys.s3_vidium_access_key,
-  secretAccessKey: keys.s3_vidium_secretAccess_key
+  secretAccessKey: keys.s3_vidium_secretAccess_key,
+  endpoint: 's3.ap-south-1.amazonaws.com',
+  signatureVersion: 'v4',
+  region: 'ap-south-1'
 }
 )
 
-exports.awsVideoUpload = async (req,res,next) =>{
+exports.awsVideoUpload = async (req, res, next) => {
   const videoextn = req.params.videotype || 'mp4'
   //const key =`${req.userId}/${uuid()}.mp4`;
-  const key =`${req.userId}/${uuid()}.${videoextn}`;
+  const key = `${req.userId}/${uuid()}.${videoextn}`;
+  // console.log('key->', key);
   //get presigned url from amazon
-  s3.getSignedUrl('putObject',{
+  s3.getSignedUrl('putObject', {
     Bucket: keys.s3_vidium_bucket_name,
     ContentType: 'video/*',
     Key: key
-  }, (err, url) =>{
-     return res.send({key, url})
+  }, (err, url) => {
+    return res.send({ key, url })
   })
 }
 exports.getUploadVideos = async (req, res, next) => {
@@ -64,20 +73,29 @@ exports.createUploadVideo = async (req, res, next) => {
   //   throw error;
   // }
   //const videoUrl = req.file.path;
-  const videoUrl = req.body.videoUrl;
   const title = req.body.title;
+  const videoUrl = req.body.videoUrl;
+  const description = req.body.description;
   const content = req.body.content;
-  const UploadVideo = new UploadVideo({
+  const videoFilename = req.body.videoFilename;
+  const videoFilesize = req.body.videoFilesize;
+  const status = req.body.status;
+
+  const uploadvideo = new UploadVideo({
     title: title,
-    content: content,
     videoUrl: videoUrl,
+    description: description,
+    content: content,
+    videoFilename: videoFilename,
+    videoFilesize: videoFilesize,
+    status: status,
     creator: req.userId
   });
   try {
-    await UploadVideo.save();
+    await uploadvideo.save();
     const user = await User.findById(req.userId);
-    user.UploadVideos.push(UploadVideo);
-    await user.save();
+    //user.UploadVideos.push(uploadvideo);
+    //await user.save();
     res.status(201).json({
       message: 'Upload created successfully!',
       UploadVideo: UploadVideo,
